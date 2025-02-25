@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'corsheaders',
+    'main',
 ]
 
 MIDDLEWARE = [
@@ -54,6 +55,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # 'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    # 'main.my_middleware.MyMiddleware',
 ]
 
 CORS_ALLOWED_ORIGINS = [
@@ -131,6 +133,8 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     os.path.join(REACT_BUILD_DIR, 'static'),
 ]
+
+MENU_IMAGE_PATH = "menuImages"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
