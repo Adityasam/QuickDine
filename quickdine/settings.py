@@ -25,6 +25,7 @@ SECRET_KEY = 'django-insecure-$t)(563i7t#vj26@l+!(suap1d76_!dj%ejz$g!@oy0r3)n8!3
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+DEVMODE = False
 
 ALLOWED_HOSTS = []
 
@@ -64,10 +65,14 @@ CORS_ALLOWED_ORIGINS = [
 
 ROOT_URLCONF = 'quickdine.urls'
 
+tempfolder = [REACT_BUILD_DIR]
+if DEVMODE:
+    tempfolder = [os.path.join(REACT_DEV_DIR)]
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(REACT_DEV_DIR)],
+        'DIRS': tempfolder,
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -131,7 +136,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 STATICFILES_DIRS = [
-    os.path.join(REACT_BUILD_DIR, 'static'),
+    os.path.join(REACT_BUILD_DIR, 'static')
 ]
 
 MENU_IMAGE_PATH = "menuImages"

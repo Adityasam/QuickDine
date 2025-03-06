@@ -18,8 +18,11 @@ ITEM_OPTION_PREFIX = "IOP"
 ORDER_CODE_PREFIX = "ORD"
 
 def index(request):
-    return redirect("http://localhost:3000")
-
+    if settings.DEVMODE:
+        return redirect("http://localhost:3000")
+    else:
+        return render(request, "index.html")
+    
 @csrf_exempt
 def get_category(request):
     cats = Category.objects.filter(Active = True, Deleted = False)
