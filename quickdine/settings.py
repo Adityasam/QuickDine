@@ -142,6 +142,11 @@ STATICFILES_DIRS = [
 
 MENU_IMAGE_PATH = "menuImages"
 
+MEDIA_ROOT = os.path.join(BASE_DIR, MENU_IMAGE_PATH)  # Store files in 'imagefolder' directory
+
+# Define the URL for accessing media files
+MEDIA_URL = '/'+MENU_IMAGE_PATH+'/'  # Access via '/imagefolder/' in URL
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
