@@ -29,3 +29,19 @@ class OrderOptionsAdmin(admin.ModelAdmin):
     list_display = ['OrderCode','OrderItemCode', 'OptionCode']
 
 admin.site.register(OrderOptions, OrderOptionsAdmin)
+class TableAdmin(admin.ModelAdmin):
+    list_display = ['TableNo','Deleted']
+
+admin.site.register(Table, TableAdmin)
+class SettingAdmin(admin.ModelAdmin):
+    list_display = ['AppURL','PaymentEnable']
+
+admin.site.register(AppSetting, SettingAdmin)
+class ReviewAdmin(admin.ModelAdmin):
+    list_display = ['OrderCode','Remark']
+
+admin.site.register(Review, ReviewAdmin)
+class UserAdmin(admin.ModelAdmin):
+    list_display = ['UserID','FullName']
+
+admin.site.register(MyUser, UserAdmin)

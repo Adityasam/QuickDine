@@ -61,7 +61,9 @@ class Order(models.Model):
   Note = models.TextField(default=None, null = True, blank = True)
   Status = models.CharField(max_length = 10, default=None, null = True, blank = True) # Status Codes P = Pending, A = Accepted, R = Ready, S = Served
   PaymentStatus = models.CharField(max_length = 10, default=None, null = True, blank = True) # Payment Status L = Pay Later, P = Paid, R = Received
+  Discount = models.FloatField(default = 0, null = True, blank = True)
   OrderTime = models.DateTimeField(auto_now_add = True)
+  CompletionTime = models.DateTimeField(default = None,  null = True, blank = True)
 
 class OrderItem(models.Model):
   OrderCode = models.CharField(max_length = 20, default=None, null = True, blank = True)
@@ -75,3 +77,23 @@ class OrderOptions(models.Model):
   GroupCode = models.CharField(max_length = 20, default=None, null = True, blank = True)
   OptionCode = models.CharField(max_length = 20, default=None, null = True, blank = True)
   Price = models.FloatField(default = 0)
+
+class Table(models.Model):
+  TableNo = models.CharField(max_length = 200, default=None, null = True, blank = True)
+  Deleted = models.BooleanField(default = False)
+
+class AppSetting(models.Model):
+  AppURL = models.CharField(max_length = 500, default=None, null = True, blank = True)
+  PaymentEnable = models.BooleanField(default = False)
+
+class Review(models.Model):
+  OrderCode = models.CharField(max_length = 20, default=None, null = True, blank = True)
+  Star = models.PositiveIntegerField(default = 0, null = True, blank = True)
+  Remark = models.TextField(default = None, null = True, blank = True)
+
+class MyUser(models.Model):
+  UserID = models.CharField(max_length = 20, default=None, null = True, blank = True) 
+  FullName = models.CharField(max_length = 200, default=None, null = True, blank = True) 
+  Password = models.CharField(max_length = 100, default=None, null = True, blank = True) 
+  Active = models.BooleanField(default=True, null = True, blank = True) 
+  Deleted = models.BooleanField(default=False, null = True, blank = True) 

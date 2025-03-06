@@ -8,7 +8,7 @@ from django.conf import settings
 import shutil
 import isodate
 from django.forms.models import model_to_dict
-from django.utils.timezone import now
+from django.utils.timezone import now, localtime
 
 # Create your views here.
 MENU_ITEM_PREFIX = "MIT"
@@ -227,6 +227,7 @@ def update_menu_item_staus(request):
     
 @csrf_exempt
 def save_order(request):
+    tableno = request.POST.get("tableno")
     body = json.loads(request.POST.get("data"))
     ordercode = body.get("code", "")
     items = body.get("items", {})
@@ -246,12 +247,20 @@ def save_order(request):
             order.Code = ORDER_CODE_PREFIX + "-"+(str(lastcode+1).zfill(10))
         else:
             order.Code = ORDER_CODE_PREFIX + "-0000000001"
+
+        todaysOrders = Order.objects.filter(OrderTime__date = localtime(now()).date()).last()
+        if todaysOrders:
+            lastcode = int(todaysOrders.ShortCode.split("-")[1])
+            order.ShortCode = (str(lastcode+1).zfill(4))
+        else:
+            order.ShortCode = "0001"
     
-    customerid = request.session["userid"] if "userid" in request.session else ""
+    customerid = request.POST.get("userid")
     
     order.CustomerId = customerid
     order.Note = note
     order.Status = "P"
+    order.TableNo = tableno
     order.PaymentStatus = paymentstatus
     order.save()
 
@@ -284,37 +293,57 @@ def save_order(request):
 
     return JsonResponse({"status": 1, "message": "success"})
 
+def get_single_order_detail(order):
+    neworder = model_to_dict(order)
+    endtime = now() if not order.CompletionTime else localtime(order.CompletionTime)
+    duration = endtime - order.OrderTime
+    total_minutes = int(duration.total_seconds() // 60)
+    neworder["TimeElapsed"] = total_minutes
+    neworder["Time"] = localtime(order.OrderTime).strftime("%I:%M %p")
+    neworder["OrderTime"] = localtime(order.OrderTime).strftime("%d/%m/%y %I:%M %p")
+    neworder["CompletionTime"] = localtime(order.CompletionTime)
+    items = list(OrderItem.objects.filter(OrderCode = order.Code).values())
+    neworder["Items"] = []
+    for item in items:
+        itemdetail, images = single_item_detail(item.get("OrderItemCode"))
+
+        orderops = []
+        options = OrderOptions.objects.filter(OrderCode = order.Code, OrderItemCode = item.get("OrderItemCode"))
+        for option in options:
+            op = MenuOption.objects.filter(Code = option.OptionCode)
+            if len(op) > 0:
+                op = model_to_dict(op[0])
+                orderops.append(op)
+        
+        neworder["Items"].append({
+            "data": itemdetail,
+            "images": images,
+            "orderitem": item,
+            "addons": orderops
+        })
+
+    #ratings
+    reviews = list(Review.objects.filter(OrderCode = order.Code).values())
+    neworder["Reviews"] = reviews
+    return neworder
+
+@csrf_exempt
+def get_single_order(request):
+    code = json.loads(request.body).get("code", "")
+    order = Order.objects.filter(Code = code)
+    detail = {}
+    if len(order) > 0:
+        order = order[0]
+        detail = get_single_order_detail(order)
+    return JsonResponse({"status": 1, "detail": detail})
+
 @csrf_exempt
 def getOrders(request):
     status = json.loads(request.body).get("status", "A")
     orders = []
     temporders = Order.objects.filter(Status = status)
     for order in temporders:
-        neworder = model_to_dict(order)
-        duration = now() - order.OrderTime
-        total_minutes = int(duration.total_seconds() // 60)
-        neworder["TimeElapsed"] = total_minutes
-        neworder["Time"] = order.OrderTime.strftime("%I:%M %p")
-        items = list(OrderItem.objects.filter(OrderCode = order.Code).values())
-        neworder["Items"] = []
-        for item in items:
-            itemdetail, images = single_item_detail(item.get("OrderItemCode"))
-
-            orderops = []
-            options = OrderOptions.objects.filter(OrderCode = order.Code, OrderItemCode = item.get("OrderItemCode"))
-            for option in options:
-                op = MenuOption.objects.filter(Code = option.OptionCode)
-                if len(op) > 0:
-                    op = model_to_dict(op[0])
-                    orderops.append(op)
-            
-            neworder["Items"].append({
-                "data": itemdetail,
-                "images": images,
-                "orderitem": item,
-                "addons": orderops
-            })
-
+        neworder = get_single_order_detail(order)
         orders.append(neworder)
     return JsonResponse({"status": 1, "data": orders})
 
@@ -326,7 +355,138 @@ def update_order_status(request):
     if len(order) > 0:
         order = order[0]
         order.Status = status
+        if status == "S":
+            order.CompletionTime = now()
         order.save()
         return JsonResponse({"status": 1, "message": "Order status updated"})
     else:
         return JsonResponse({"status": 0, "message": "Order not found"})
+    
+@csrf_exempt
+def get_order_status_count(request):
+    orders = Order.objects.all()
+    status = {}
+    for order in orders:
+        if order.Status not in status:
+            status[order.Status] = 1
+        else:
+            status[order.Status] += 1
+
+    return JsonResponse({"status": 1, "data": status})
+
+@csrf_exempt
+def save_table(request):
+    tableno = json.loads(request.body).get("tableno", "")
+    old = Table.objects.filter(TableNo = tableno, Deleted = False)
+    if len(old) > 0:
+        return JsonResponse({"status": 2, "message": "Table no already exists"})
+    tab = Table()
+    tab.TableNo = tableno
+    tab.save()
+    return JsonResponse({"status": 1, "message": "Table created"})
+
+@csrf_exempt
+def save_user(request):
+    userid = json.loads(request.body).get("userid", "")
+    name = json.loads(request.body).get("name", "")
+    password = json.loads(request.body).get("password", "")
+    active = json.loads(request.body).get("active", "")
+
+    old = MyUser.objects.filter(UserID = userid, Deleted = False)
+    if len(old) > 0:
+        old = old[0]
+    else:
+        old = MyUser()
+    old.UserID = userid
+    old.FullName = name
+    old.Password = password
+    old.Active = True if active == "1" else "0"
+    old.save()
+    return JsonResponse({"status": 1, "message": "User Saved"})
+
+@csrf_exempt
+def delete_table(request):
+    tableno = json.loads(request.body).get("tableno", "")
+    old = Table.objects.filter(TableNo = tableno)
+    if len(old) > 0:
+        old = old[0]
+        old.Deleted = True
+        old.save()
+
+    return JsonResponse({"status": 1, "message": "Table Deleted"})
+
+@csrf_exempt
+def get_table_list(request):
+    tables = list(Table.objects.filter(Deleted = False).order_by("TableNo").values())
+    return JsonResponse({"data": tables})
+
+@csrf_exempt
+def get_settings(request):
+    sett = list(AppSetting.objects.all().values())
+    if len(sett) > 0:
+      return JsonResponse({"settings": sett[0]})
+    else:
+      return JsonResponse({"settings": {}})
+    
+@csrf_exempt
+def get_my_orders(request):
+    userid = json.loads(request.body).get("userid", "")
+    orders = Order.objects.filter(CustomerId = userid).order_by("-OrderTime")
+    allorders = []
+    for order in orders:
+        neworder = get_single_order_detail(order)
+        allorders.append(neworder)
+    return JsonResponse({"status": 1, "data": allorders})
+
+@csrf_exempt
+def submit_review(request):
+    code = json.loads(request.body).get("ordercode", "")
+    remark = json.loads(request.body).get("remark", "")
+    star = json.loads(request.body).get("star", "")
+    
+    review = Review()
+    review.OrderCode = code
+    review.Remark = remark
+    review.Star = star
+    review.save()
+    return JsonResponse({"status": 1})
+
+@csrf_exempt
+def confirm_order_payment(request):
+    code = json.loads(request.body).get("code")
+    discount = json.loads(request.body).get("discount")
+    order = Order.objects.filter(Code = code)
+    if len(order) > 0:
+        order = order[0]
+        order.PaymentStatus = "P"
+        order.Discount = float(discount)
+        order.save()
+
+    return JsonResponse({"status": 1})
+
+@csrf_exempt
+def getUserList(request):
+    user = list(MyUser.objects.filter(Deleted = False).values())
+    return JsonResponse({"status": 1, "users": user})
+
+@csrf_exempt
+def getUserDetail(request):
+    userid = json.loads(request.body).get("userid", "")
+    user = list(MyUser.objects.filter(UserID = userid).values())
+    if len(user) > 0:
+        return JsonResponse({"status": 1, "detail": user[0]})
+    else:
+        return JsonResponse({"status": 0, "message": "User not found"})
+    
+@csrf_exempt
+def get_review_list(request):
+    review = Review.objects.all()
+    data = []
+    for r in review:
+        newr = model_to_dict(r)
+        order = Order.objects.filter(Code = r.OrderCode)
+        if len(order) > 0:
+            order = order[0]
+            newr["OrderTime"] = localtime(order.OrderTime).strftime("%d/%m/%y %I:%M %p")
+        data.append(newr)
+    return JsonResponse({"stauts": 1, "data": data})

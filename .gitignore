@@ -1,3 +1,4 @@
 db.sqlite3
 main/__pycache__/
 main/migrations
+quickdine/__pycache__/
