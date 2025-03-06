@@ -1,0 +1,148 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --my_orange: #fece4c;
+  --light_orange: #ffe9ad;
+}
+
+@font-face {
+  font-family: QuickSand;
+  src: url("static/font/QuickSand.ttf");
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--my_orange);
+  font-family: QuickSand;
+  color: #393939;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
+}
+
+.mainBg {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("static/img/foodbg.jpg");
+  background-repeat: repeat;
+  background-size: contain;
+  mix-blend-mode: screen;
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.topMenu::-webkit-scrollbar {
+  display: none;
+}
+
+.shadow-up {
+  box-shadow: 0px -10px 10px #3939392c;
+}
+
+button.btn {
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+@keyframes slideInFromTop {
+  0% {
+    margin-top: -50px;
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+    margin-top: 0px;
+  }
+}
+
+.slideIn {
+  opacity: 0;
+  animation: 0.2s linear 0s 1 slideInFromTop forwards;
+}
+
+/* ::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 5px grey;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--my_orange);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #b30000;
+} */
+
+.noScroll::-webkit-scrollbar {
+  display: none;
+}
+
+select,
+input,
+textarea {
+  border: 1px solid #00000050;
+  border-radius: 5px;
+  padding: 10px 10px;
+  font-size: 14px;
+  width: 100%;
+}
+
+table {
+  width: 100%;
+}
+
+th,
+td {
+  padding: 10px;
+  text-align: start;
+}
+
+.custom-toggle {
+  width: 58px;
+  height: 32px;
+  border-radius: 100px;
+  position: relative;
+  border: 2px solid gray;
+  cursor: pointer;
+}
+
+.custom-toggle>div {
+  height: 25px;
+  width: 25px;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  background-color: gray;
+  border-radius: 100px;
+  transition: all ease-in-out 0.2s;
+}
+
+.custom-toggle.active>div {
+  left: calc(100% - 27px);
+  background-color: var(--my_orange);
+}
+
+.custom-toggle.active {
+  border: 2px solid var(--my_orange);
+}
