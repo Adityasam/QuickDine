@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-$t)(563i7t#vj26@l+!(suap1d76_!dj%ejz$g!@oy0r3)n8!3
 DEBUG = True
 DEVMODE = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 REACT_BUILD_DIR = os.path.join(BASE_DIR, 'frontend', 'build')
 REACT_DEV_DIR = os.path.join(BASE_DIR, 'frontend', 'public')
