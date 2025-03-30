@@ -59,8 +59,13 @@ MIDDLEWARE = [
     # 'main.my_middleware.MyMiddleware',
 ]
 
+CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # React dev server
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
 ]
 
 ROOT_URLCONF = 'quickdine.urls'

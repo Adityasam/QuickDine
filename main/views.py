@@ -149,19 +149,17 @@ def save_menu_item(request):
 
 @csrf_exempt
 def get_menu_desktop(request):
-    menus = MenuItem.objects.filter(Deleted = False).values()
-    menus = list(menus)
+    menus = MenuItem.objects.filter(Deleted = False)
+    alldata = []
     for m in menus:
-        cat = m.get("CategoryCode", "")
-        catData = Category.objects.get(Code = cat)
-        m["CategoryName"] = catData.Name
+        menudata, images, options, cat = single_item_detail(m.Code)
+        menudata["CategoryName"] = cat
+        menudata["Options"] = options
+        menudata["Images"] = images
 
-        directory_path = os.path.join(settings.MENU_IMAGE_PATH, m["Code"])
-        if os.path.isdir(directory_path):
-            files = [f for f in os.listdir(directory_path) if os.path.isfile(os.path.join(directory_path, f))]
-            m["Images"] = files
+        alldata.append(menudata)
 
-    return JsonResponse(menus, safe=False)
+    return JsonResponse(alldata, safe=False)
 
 @csrf_exempt
 def get_menu_mobile(request):
@@ -178,12 +176,20 @@ def get_menu_mobile(request):
 def single_item_detail(itemcode):
     item = MenuItem.objects.filter(Code = itemcode)
     images = []
+    categoryName = ""
+    itemoptions = []
     if len(item) > 0:
+        cat = item[0].CategoryCode
+        if cat != "":
+            catData = Category.objects.get(Code = cat)
+            categoryName = catData.Name
+
         oGs = list(OptionGroup.objects.filter(ItemCode = itemcode).values())
         for og in oGs:
             ogCode = og.get("Code", "")
             options = list(MenuOption.objects.filter(GroupCode = ogCode).values())
             og["Options"] = options
+        itemoptions = oGs
 
         #images
         directory_path = os.path.join(settings.MENU_IMAGE_PATH, itemcode)
@@ -193,12 +199,12 @@ def single_item_detail(itemcode):
 
     data = list(item.values())
     data = data[0] if len(data) > 0 else {}
-    return data, images
+    return data, images, itemoptions, categoryName
 
 @csrf_exempt
 def get_single_menu_item(request):
     itemcode = json.loads(request.body).get("code", "")
-    item, images = single_item_detail(itemcode)
+    item, images, io, cat = single_item_detail(itemcode)
     if len(item) > 0:
         oGs = list(OptionGroup.objects.filter(ItemCode = itemcode).values())
         for og in oGs:
@@ -227,7 +233,7 @@ def update_menu_item_staus(request):
         return JsonResponse({"status": 1, "message": "success"})
     else:
         return JsonResponse({"status": 0, "message": "Menu item not found"})
-    
+
 @csrf_exempt
 def save_order(request):
     tableno = request.POST.get("tableno")
@@ -236,6 +242,7 @@ def save_order(request):
     items = body.get("items", {})
     note = body.get("note", "")
     paymentstatus = body.get("payment", "L")
+    orderstatus = body.get("orderstatus", "P")
 
     #Creating main order
     order = Order()
@@ -253,7 +260,7 @@ def save_order(request):
 
         todaysOrders = Order.objects.filter(OrderTime__date = localtime(now()).date()).last()
         if todaysOrders:
-            lastcode = int(todaysOrders.ShortCode.split("-")[1])
+            lastcode = int(todaysOrders.ShortCode)
             order.ShortCode = (str(lastcode+1).zfill(4))
         else:
             order.ShortCode = "0001"
@@ -262,7 +269,7 @@ def save_order(request):
     
     order.CustomerId = customerid
     order.Note = note
-    order.Status = "P"
+    order.Status = orderstatus
     order.TableNo = tableno
     order.PaymentStatus = paymentstatus
     order.save()
@@ -282,17 +289,18 @@ def save_order(request):
         newitem.save()
 
         # Creating extra options for each item
-        options = items.get(item).get("options")
-        for option in options:
-            optiondata = options.get(option)
-            for opitem in optiondata:
-                newoption = OrderOptions()
-                newoption.OrderCode = newordercode
-                newoption.OrderItemCode = item
-                newoption.GroupCode = option
-                newoption.OptionCode = opitem
-                newoption.Price = optiondata.get(opitem).get("price")
-                newoption.save()
+        if "options" in items.get(item):
+            options = items.get(item).get("options")
+            for option in options:
+                optiondata = options.get(option)
+                for opitem in optiondata:
+                    newoption = OrderOptions()
+                    newoption.OrderCode = newordercode
+                    newoption.OrderItemCode = item
+                    newoption.GroupCode = option
+                    newoption.OptionCode = opitem
+                    newoption.Price = optiondata.get(opitem).get("price")
+                    newoption.save()
 
     return JsonResponse({"status": 1, "message": "success"})
 
@@ -308,7 +316,7 @@ def get_single_order_detail(order):
     items = list(OrderItem.objects.filter(OrderCode = order.Code).values())
     neworder["Items"] = []
     for item in items:
-        itemdetail, images = single_item_detail(item.get("OrderItemCode"))
+        itemdetail, images, io, cat = single_item_detail(item.get("OrderItemCode"))
 
         orderops = []
         options = OrderOptions.objects.filter(OrderCode = order.Code, OrderItemCode = item.get("OrderItemCode"))

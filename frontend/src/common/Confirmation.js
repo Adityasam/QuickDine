@@ -7,10 +7,16 @@ const Confirmation = ({
   onConfirm,
   cancelBtn = "Cancel",
   confirmBtn = "Delete",
+  className = "",
 }) => {
   return (
     <>
-      <Dialog open={true} onClose={onCancel} title={title}>
+      <Dialog
+        className={className}
+        open={true}
+        onClose={onCancel}
+        title={title}
+      >
         <div>{message}</div>
         <div className="flex justify-end mt-4 gap-2">
           {cancelBtn && (

@@ -16,31 +16,26 @@ const DesktopMenu = ({ collapse = false }) => {
 
   const menuItem = [
     {
-      id: 1,
       title: "Dashboard",
       key: "dashboard",
       icon: <LayoutDashboard size={20} />,
     },
     {
-      id: 2,
       title: "Orders",
       key: "orders",
       icon: <ListCheck size={20} />,
     },
     {
-      id: 3,
-      title: "Menus",
+      title: "Menus Items",
       key: "menu",
       icon: <SquareMenu size={20} />,
     },
     {
-      id: 4,
       title: "Reviews",
       key: "reviews",
       icon: <Star size={20} />,
     },
     {
-      id: 5,
       title: "Settings",
       key: "settings",
       icon: <Cog size={20} />,

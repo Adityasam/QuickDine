@@ -10,10 +10,14 @@ const MyOrders = () => {
   let currentAmount = 0;
   userOrders?.forEach((order) => {
     if (order.Status == "A" || order.Status == "P") {
-      currentAmount += order.Items?.reduce(
-        (sum, pair) => sum + pair.orderitem.Price * pair.orderitem.Quantity,
-        0
-      );
+      order.Items.forEach((itm) => {
+        currentAmount += itm.orderitem.Price;
+        if ("addons" in itm) {
+          itm.addons.forEach((ad) => {
+            currentAmount += ad.Price;
+          });
+        }
+      });
     }
   });
 

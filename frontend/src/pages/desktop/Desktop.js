@@ -6,6 +6,7 @@ import Settings from "./Settings";
 import MenuWrapper from "./MenuWrapper";
 import DesktopHeader from "common/DesktopHeader";
 import Review from "./Review";
+import OrderMenu from "./OrderMenu";
 
 import { useParams } from "react-router-dom";
 

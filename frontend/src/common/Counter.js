@@ -31,13 +31,13 @@ const Counter = ({
         <Minus
           size={20}
           onClick={() => changeValue(-1)}
-          className="border p-1 rounded-md bg-background-lightOrange"
+          className="border cursor-pointer p-1 rounded-md bg-background-lightOrange"
         />
-        <span className="px-4 font-bold">{value}</span>
+        <span className="select-none px-4 font-bold">{value}</span>
         <Plus
           size={20}
           onClick={() => changeValue(1)}
-          className="border p-1 rounded-md bg-background-lightOrange"
+          className="border cursor-pointer p-1 rounded-md bg-background-lightOrange"
         />
       </div>
     </>

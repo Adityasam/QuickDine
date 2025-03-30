@@ -2,6 +2,12 @@ import { MENU_IMAGE_PATH, rupee } from "static/js/myjs";
 import dummyfood from "static/img/food_dummy.png";
 
 const OrderCardItem = ({ item }) => {
+  let totalPrice = item.orderitem.Price;
+  if ("addons" in item) {
+    item.addons.forEach((element) => {
+      totalPrice += element.Price;
+    });
+  }
   return (
     <>
       <div className="grid items-center border-b grid-cols-12 gap-2">
@@ -28,7 +34,7 @@ const OrderCardItem = ({ item }) => {
           </div>
           <div className="text-xs flex">
             <div className="flex-1 font-bold">
-              {rupee} {item.orderitem.Price}
+              {rupee} {totalPrice}
             </div>
             <div className="font-semibold">Qty. {item.orderitem.Quantity}</div>
           </div>

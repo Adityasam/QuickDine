@@ -31,22 +31,26 @@ const Header = ({ icon, title = "QuickDine" }) => {
         <div className="text-center text-2xl font-bold flex-1 overflow-x-visible whitespace-nowrap">
           {title}
         </div>
-        <div className="relative flex-1 flex justify-end">
-          {sessionStorage.getItem("TABLENO") && icon == "order" && (
-            <CookingPot onClick={() => navigate("/myorders")} />
-          )}
-          {sessionStorage.getItem("TABLENO") &&
-            activeOrders > 0 &&
-            icon == "order" && (
-              <div
-                className="absolute pointer-events-none top-0 right-0 bg-red-500 text-white shadow-xl border border-white rounded-full 
+        {sessionStorage.getItem("TABLENO") && (
+          <div className="flex-1 flex justify-end">
+            <div className="relative">
+              {sessionStorage.getItem("TABLENO") && icon == "order" && (
+                <CookingPot onClick={() => navigate("/myorders")} />
+              )}
+              {sessionStorage.getItem("TABLENO") &&
+                activeOrders > 0 &&
+                icon == "order" && (
+                  <div
+                    className="absolute pointer-events-none top-0 right-0 bg-red-500 text-white shadow-xl border border-white rounded-full 
             text-xs w-4 h-4 flex justify-center items-center font-bold -mt-2 -me-2"
-              >
-                {activeOrders}
-              </div>
-            )}
-          {icon == "menu" && <List onClick={() => navigate("/")} />}
-        </div>
+                  >
+                    {activeOrders}
+                  </div>
+                )}
+              {icon == "menu" && <List onClick={() => navigate("/")} />}
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

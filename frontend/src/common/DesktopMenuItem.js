@@ -21,7 +21,7 @@ const DesktopMenuItem = ({ m, collapse, setSelectedMenu, selectedMenu }) => {
         <div className="absolute bottom-0 -mb-4 right-0 w-4 h-4 rounded-full bg-background-orange"></div>
         <div className="z-10">{m.icon}</div>
         <div
-          className={`ms-4 text-sm font-semibold overflow-hidden z-10 ${
+          className={`ms-4 text-sm font-semibold whitespace-nowrap overflow-hidden z-10 ${
             collapse ? "w-0" : "w-auto"
           }`}
         >

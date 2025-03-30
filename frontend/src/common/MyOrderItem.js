@@ -5,11 +5,38 @@ import { useMutation } from "@tanstack/react-query";
 import { submitReview } from "apis/menu";
 import { toast } from "react-toastify";
 import { useState, useRef } from "react";
+import Confirmation from "./Confirmation";
+import { updateOrderStatus } from "apis/orders";
+import { MainContext } from "providers/MainProvider";
+import { useContext } from "react";
 
 const MyOrderItem = ({ order }) => {
+  const { setUserOrders, userOrders } = useContext(MainContext);
   const [ratingBox, setRatingBox] = useState("");
   const [stars, setStars] = useState(0);
   const ratingRef = useRef();
+  const [cancelConfirm, setCancelConfirm] = useState(false);
+
+  const updateMutation = useMutation({
+    mutationFn: updateOrderStatus,
+    onSuccess: (d, v) => {
+      if (d.status == 1) {
+        toast.success("Order Cancelled");
+        userOrders.map((ord) => {
+          if (ord.id == order.id) {
+            ord.Status = "C";
+          }
+        });
+        setUserOrders([...userOrders]);
+      } else if (d.status == 0) {
+        toast.success("Order not found");
+      }
+    },
+    onError: (error) => {
+      console.log(error);
+      toast.error("An error occured");
+    },
+  });
 
   const reviewMutation = useMutation({
     mutationFn: submitReview,
@@ -36,8 +63,35 @@ const MyOrderItem = ({ order }) => {
     });
   }
 
+  let totalprice = 0;
+
+  order.Items.forEach((itm) => {
+    totalprice += itm.orderitem.Price;
+    if ("addons" in itm) {
+      itm.addons.forEach((ad) => {
+        totalprice += ad.Price;
+      });
+    }
+  });
+
+  function cancelOrder() {
+    updateMutation.mutate({ code: order.Code, status: "C" });
+    setCancelConfirm(false);
+  }
+
   return (
     <>
+      {cancelConfirm && (
+        <Confirmation
+          title={`Deleting Order #${order.ShortCode}`}
+          message={`Are you sure you want to delete order #${order.ShortCode}`}
+          cancelBtn="No"
+          confirmBtn="Yes, Cancel"
+          onCancel={() => setCancelConfirm(false)}
+          onConfirm={() => cancelOrder()}
+          className="w-[90vw]"
+        />
+      )}
       <div
         className={`mb-4 border ${
           order.Status == "A"
@@ -46,6 +100,10 @@ const MyOrderItem = ({ order }) => {
             ? "border-red-500"
             : order.Status == "S"
             ? "border-green-500"
+            : order.Status == "P"
+            ? "border-orange-500"
+            : order.Status == "C"
+            ? "border-rose-500"
             : ""
         } rounded-2xl py-2 ps-2 pe-4 relative overflow-hidden`}
       >
@@ -57,6 +115,10 @@ const MyOrderItem = ({ order }) => {
               ? "bg-red-500"
               : order.Status == "S"
               ? "bg-green-500"
+              : order.Status == "P"
+              ? "bg-orange-500"
+              : order.Status == "C"
+              ? "bg-rose-500"
               : ""
           } w-1.5`}
         ></div>
@@ -65,11 +127,17 @@ const MyOrderItem = ({ order }) => {
           <div className="border-r pe-2 text-sm">
             Table No: <span className="font-bold text-xl">{order.TableNo}</span>
           </div>
+          {order.Status == "C" && (
+            <div className="text-sm text-rose-500 font-semibold">Cancelled</div>
+          )}
+          {order.Status == "P" && (
+            <div className="text-sm text-orange-500 font-semibold">Waiting</div>
+          )}
           {order.Status == "A" && (
             <div className="text-sm text-blue-500 font-semibold">Preparing</div>
           )}
           {order.Status == "R" && (
-            <div className="text-sm text-red-500 font-semibold">Cancelled</div>
+            <div className="text-sm text-red-500 font-semibold">Rejected</div>
           )}
           {order.Status == "S" && (
             <div className="text-sm text-green-500 font-semibold">
@@ -78,43 +146,52 @@ const MyOrderItem = ({ order }) => {
           )}
         </div>
         <div>
-          {order.Items?.map((item, ind) => (
-            <div
-              className="grid items-center border-b grid-cols-12 gap-2"
-              key={"item_" + ind}
-            >
-              <div className="col-span-4">
-                <img
-                  src={
-                    item.images.length > 0
-                      ? process.env.REACT_APP_PUBLIC_URL +
-                        MENU_IMAGE_PATH +
-                        "/" +
-                        item.data.Code +
-                        "/" +
-                        item.images[0]
-                      : dummyfood
-                  }
-                />
-              </div>
-              <div className="col-span-8">
-                <div className="text-sm font-semibold">{item.data.Name}</div>
-                <div className="text-xs text-gray-500 flex flex-col mb-1">
-                  {item.addons.map((adon) => (
-                    <div key={"adon_" + adon.Name}>+ {adon.Name}</div>
-                  ))}
+          {order.Items?.map((item, ind) => {
+            let itemtotal = item.orderitem.Price;
+            if ("addons" in item) {
+              item.addons.forEach((ad) => {
+                itemtotal += ad.Price;
+              });
+            }
+            return (
+              <div
+                className="grid items-center border-b grid-cols-12 gap-2"
+                key={"item_" + ind}
+              >
+                <div className="col-span-4">
+                  <img
+                    src={
+                      item.images.length > 0
+                        ? process.env.REACT_APP_PUBLIC_URL +
+                          MENU_IMAGE_PATH +
+                          "/" +
+                          item.data.Code +
+                          "/" +
+                          item.images[0]
+                        : dummyfood
+                    }
+                  />
                 </div>
-                <div className="text-xs flex">
-                  <div className="flex-1 font-bold">
-                    {rupee} {item.orderitem.Price}
+                <div className="col-span-8">
+                  <div className="text-sm font-semibold">{item.data.Name}</div>
+                  <div className="text-xs text-gray-500 flex flex-col mb-1">
+                    {item.addons.map((adon) => (
+                      <div key={"adon_" + adon.Name}>+ {adon.Name}</div>
+                    ))}
                   </div>
-                  <div className="font-semibold">
-                    Qty. {item.orderitem.Quantity}
+                  <div className="text-xs flex">
+                    <div className="flex-1 font-bold">
+                      {rupee} {itemtotal}
+                    </div>
+                    <div className="font-semibold">
+                      Qty. {item.orderitem.Quantity}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
+
           {order.Note && (
             <div className="flex gap-2 text-sm mt-2 border-b pb-2">
               <div className="w-1 rounded-full bg-blue-500"></div>
@@ -133,12 +210,7 @@ const MyOrderItem = ({ order }) => {
                 {order.Items?.length == 1 ? "Item" : "Items"}
               </div>
               <div className="text-sm font-bold">
-                Total{" " + rupee}
-                {order.Items?.reduce(
-                  (sum, pair) =>
-                    sum + pair.orderitem.Price * pair.orderitem.Quantity,
-                  0
-                )}
+                Total{" " + rupee} {totalprice}
               </div>
             </div>
             <div className="flex-1 text-end">
@@ -215,6 +287,18 @@ const MyOrderItem = ({ order }) => {
             </div>
           )}
         </div>
+        {/* Order Cancel Button */}
+        {order.Status == "P" && (
+          <div className="border-t pt-2 mt-2 flex justify-end">
+            <div
+              onClick={() => setCancelConfirm(true)}
+              className="btn bg-red-500 rounded-md px-2 py-1 text-white"
+            >
+              Cancel Order
+            </div>
+          </div>
+        )}
+        {/* Order Cancel Button */}
       </div>
     </>
   );
