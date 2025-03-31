@@ -163,15 +163,17 @@ def get_menu_desktop(request):
 
 @csrf_exempt
 def get_menu_mobile(request):
-    menus = MenuItem.objects.filter(Available = True, Deleted = False).values()
-    menus = list(menus)
+    menus = MenuItem.objects.filter(Available = True, Deleted = False)
+    alldata = []
     for m in menus:
-        directory_path = os.path.join(settings.MENU_IMAGE_PATH, m["Code"])
-        if os.path.isdir(directory_path):
-            files = [f for f in os.listdir(directory_path) if os.path.isfile(os.path.join(directory_path, f))]
-            m["Images"] = files
+        menudata, images, options, cat = single_item_detail(m.Code)
+        menudata["CategoryName"] = cat
+        menudata["Options"] = options
+        menudata["Images"] = images
 
-    return JsonResponse(menus, safe=False)
+        alldata.append(menudata)
+
+    return JsonResponse(alldata, safe=False)
 
 def single_item_detail(itemcode):
     item = MenuItem.objects.filter(Code = itemcode)

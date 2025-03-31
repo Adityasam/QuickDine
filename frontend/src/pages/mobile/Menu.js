@@ -5,7 +5,7 @@ import Options from "./Options";
 import Cart from "./Cart";
 import Header from "common/Header";
 import { getMenuMobile, getCategory } from "apis/menu";
-import { OrderContext } from "providers/OrderProvider";
+import { OrderContext, itemDefault } from "providers/OrderProvider";
 import Counter from "common/Counter";
 import { useSearchParams } from "react-router-dom";
 import { QrCode } from "lucide-react";
@@ -58,6 +58,20 @@ const Menu = () => {
       area.scrollIntoView({ behavior: "smooth", block: "start" });
     }
     setActiveFilter(code);
+  }
+
+  function addNewItem(item) {
+    if ("Options" in item && item.Options.length > 0) {
+      setItemCode(item.Code);
+    } else {
+      const copy = structuredClone(itemDefault);
+      orderForm.items[item.Code] = copy;
+      orderForm.items[item.Code].info.price = item.Price;
+      orderForm.items[item.Code].info.name = item.Name;
+      orderForm.items[item.Code].info.image =
+        item.Images.length > 0 ? item.Images[0] : "";
+      setOrderForm({ ...orderForm });
+    }
   }
 
   return (
@@ -151,7 +165,7 @@ const Menu = () => {
                                   ) : (
                                     <div
                                       onClick={() => {
-                                        setItemCode(item.Code);
+                                        addNewItem(item);
                                       }}
                                       className="border-2 px-2 py-0.5 rounded-md"
                                     >

@@ -200,7 +200,8 @@ const Options = ({ Code, open, onClose }) => {
           onClick={() => onClose(false)}
           className="ms-10 btn flex-1 bg-background-orange"
         >
-          Add {rupee} {optionPrice}
+          Add {rupee}
+          {optionPrice}
         </button>
       </div>
     </div>
