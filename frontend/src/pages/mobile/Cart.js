@@ -9,10 +9,12 @@ import { MENU_IMAGE_PATH, getTotalAmount } from "../../static/js/myjs";
 import dummyfood from "static/img/food_dummy.png";
 import { saveOrder } from "apis/menu";
 import { toast } from "react-toastify";
+import PageLoader from "common/PageLoader";
 
 const Cart = ({ open, onClose, id }) => {
   const navigate = useNavigate();
   const { orderForm, setOrderForm } = useContext(OrderContext);
+  const [loader, setLoader] = useState(false);
 
   const [instructionOpen, setInstructionOpen] = useState(false);
   const instructionRef = useRef(null);
@@ -30,10 +32,12 @@ const Cart = ({ open, onClose, id }) => {
       } else {
         toast.error(resp.message);
       }
+      setLoader(false);
     },
     onError: (error) => {
       console.log(error);
       toast.error("An error occured");
+      setLoader(false);
     },
   });
 
@@ -59,6 +63,7 @@ const Cart = ({ open, onClose, id }) => {
   }
 
   function placeOrder() {
+    setLoader(true);
     const fd = new FormData();
     fd.append("data", JSON.stringify(orderForm));
     const tableno = sessionStorage.getItem("TABLENO");
@@ -75,6 +80,7 @@ const Cart = ({ open, onClose, id }) => {
         open ? "bg-[#00000050] pointer-events-auto" : "pointer-events-none"
       } fixed overflow-y-auto top-0 left-0 w-full h-full transition-all duration-500`}
     >
+      {loader && <PageLoader />}
       <div
         className={`${
           open ? "bottom-0" : "-bottom-full"

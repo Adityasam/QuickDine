@@ -7,8 +7,11 @@ import { toast } from "react-toastify";
 import { getTableList } from "apis/settings";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import PageLoader from "common/PageLoader";
+import dummyfood from "static/img/food_dummy.png";
 
 const NewOrderConfirm = ({ data, onClose, onSubmit }) => {
+  const [loader, setLoader] = useState(false);
   const [tableNo, setTableNo] = useState("");
   const { data: tableList } = useQuery({
     queryKey: ["getTableList"],
@@ -24,10 +27,12 @@ const NewOrderConfirm = ({ data, onClose, onSubmit }) => {
       } else {
         toast.error(resp.message);
       }
+      setLoader(false);
     },
     onError: (error) => {
       console.log(error);
       toast.error("An error occured");
+      setLoader(false);
     },
   });
 
@@ -36,6 +41,7 @@ const NewOrderConfirm = ({ data, onClose, onSubmit }) => {
       toast.error("Please select the table no");
       return;
     }
+    setLoader(true);
     const fd = new FormData();
     data["orderstatus"] = "A";
     fd.append("data", JSON.stringify(data));
@@ -64,6 +70,7 @@ const NewOrderConfirm = ({ data, onClose, onSubmit }) => {
   });
   return (
     <>
+      {loader && <PageLoader />}
       <Dialog title="Order Preview" open={true} onClose={onClose}>
         <div className="max-h-80vh overflow-y-auto">
           {data && (
@@ -80,12 +87,14 @@ const NewOrderConfirm = ({ data, onClose, onSubmit }) => {
                       <img
                         className="w-20 h-20 object-contain"
                         src={
-                          process.env.REACT_APP_PUBLIC_URL +
-                          MENU_IMAGE_PATH +
-                          "/" +
-                          itemkey +
-                          "/" +
                           item.info.image
+                            ? process.env.REACT_APP_PUBLIC_URL +
+                              MENU_IMAGE_PATH +
+                              "/" +
+                              itemkey +
+                              "/" +
+                              item.info.image
+                            : dummyfood
                         }
                       />
                     </div>

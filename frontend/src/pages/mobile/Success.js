@@ -28,11 +28,11 @@ const Success = () => {
         </div>
         <div className="flex flex-col items-center justify-center fixed bottom-0 left-0 w-full h-[30vh] bg-white">
           <div>Your order will be ready in 20 minutes</div>
-          <Link to="/">
+          <div onClick={() => window.open("/", "_self")}>
             <div className="bg-background-orange shadow-md text-white font-semibold rounded-full px-4 py-2 mt-4">
               More Hungry, Let's do again
             </div>
-          </Link>
+          </div>
         </div>
       </div>
     </>
