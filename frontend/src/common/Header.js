@@ -11,7 +11,9 @@ const Header = ({ icon, title = "QuickDine" }) => {
 
   useEffect(() => {
     if (userOrders) {
-      const active = userOrders.filter((o) => o.Status == "A");
+      const active = userOrders.filter(
+        (o) => o.Status == "A" || o.Status == "P"
+      );
       setActiveOrders(active.length);
     }
   }, [userOrders]);
