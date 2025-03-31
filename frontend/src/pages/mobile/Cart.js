@@ -21,6 +21,11 @@ const Cart = ({ open, onClose, id }) => {
     mutationFn: saveOrder,
     onSuccess: (resp, data) => {
       if (resp.status == 1) {
+        setOrderForm({
+          code: "",
+          note: "",
+          items: {},
+        });
         navigate("/success");
       } else {
         toast.error(resp.message);
