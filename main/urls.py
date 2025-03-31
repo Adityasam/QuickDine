@@ -1,9 +1,8 @@
-from django.urls import path
+from django.urls import path, re_path
 from . import views
 
 urlpatterns = [
     path('', views.index, name='index'),
-    path('desktop', views.index, name='index'),
     path('get_category', views.get_category, name='get_category'),
     path('save_menu_item', views.save_menu_item, name='save_menu_item'),
     path('get_menu_desktop', views.get_menu_desktop, name='get_menu_desktop'),
@@ -26,4 +25,5 @@ urlpatterns = [
     path('get_user_list', views.getUserList, name='get_user_list'),
     path('get_user_detail', views.getUserDetail, name='get_user_detail'),
     path('get_review_list', views.get_review_list, name='get_review_list'),
+    re_path(r"^.*$", views.index),
 ]
